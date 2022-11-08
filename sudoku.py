@@ -4,91 +4,93 @@ from functools import reduce
 
 class Sudoku():
     def __init__(self, input):
+        '''initialize variables this class needs'''
         self.slices = [slice(0,3), slice(3,6), slice(6,9)]
-        s1,s2,s3 = self.slices
-        self.allgrids=[(si,sj) for si in [s1,s2,s3] for sj in [s1,s2,s3]] # Makes 2d slices for grids
-        self.FULLDOMAIN = np.array(range(1,10)) #All possible values (1-9)
+        a,b,c = self.slices
+        self.allgrids=[(si,sj) for si in [a,b,c] for sj in [a,b,c]]
+        self.FULLDOMAIN = np.array(range(1,10)) 
         self.board = Sudoku.toBoard(input)
 
     def toBoard(input):
-        "Converts string to 2d array"
+        '''Turns the input into a sudoku board'''
         return np.array([int(s) for s in list(input)]).reshape((9,9))
 
     def getGrid(self, var):
-        "Returns the grid slice (3x3) to which the variable's coordinates belong "
-        row,col = var
-        grid = (self.slices[int(row/3)], self.slices[int(col/3)] )
-        return grid
+        '''Returns the 3x3 sections of the sudoku board'''
+        row,column = var
+        section = (self.slices[int(row/3)], self.slices[int(column/3)] )
+        return section
 
     # Constraints
     def unique_rows(self):
+        '''Checks to see if the rows are unique'''
         for row in self.board:
             if not np.array_equal(np.unique(row),np.array(range(1,10))) :
                 return False
         return True
 
     def unique_columns(self):
+        '''Checks to see if the columns are unique'''
         for row in self.board.T: #transpose soduku to get columns
             if not np.array_equal(np.unique(row),np.array(range(1,10))) :
                 return False
         return True
 
-    def unique_grids(self):
+    def unique_sections(self):
+        '''Checks to see if the 3x3 sections are unique'''
         for grid in self.allgrids: 
             if not np.array_equal(np.unique(self.board[grid]),np.array(range(1,10))) :
                 return False
         return True
 
     def finished(self):
+        '''Checks to see if the sudoku board is done being solved'''
         if 0 in self.board:
             return False
         else:
             return True
 
     def result(self):
+        '''Checks to see if the sudoku board has been correctly solved'''
         if self.unique_columns():
             if self.unique_rows():
-                if self.unique_grids():
+                if self.unique_sections():
                     return True
         return False
 
-
     # Search
     def domain(self, var):
-        "Gets the remaining legal values (available domain) for an unfilled box `var` in `soduku`"
-        row,col = var
-        used_d = reduce(np.union1d, (self.board[row,:], self.board[:,col], self.board[self.getGrid(var)]))
-        avail_d = np.setdiff1d(self.FULLDOMAIN, used_d)
-        #print(var, avail_d)
-        return avail_d
+        '''gets the domain for the backtracking algorithm'''
+        row,column = var
+        temp = reduce(np.union1d, (self.board[row,:], self.board[:,column], self.board[self.getGrid(var)]))
+        available = np.setdiff1d(self.FULLDOMAIN, temp)
+        return available
 
     def getMinRemainVals(self, vars):
-        """
-        Returns the unfilled box `var` with minimum remaining [legal] values (MRV) 
-        and the corresponding values (available domain)
-        """
-        avail_domains = [self.domain(var) for var in vars]
-        avail_sizes = [len(avail_d) for avail_d in avail_domains]
-        index = np.argmin(avail_sizes)
-        return vars[index], avail_domains[index]
+        '''The minimum remaining value heuristic function'''
+        domains = [self.domain(var) for var in vars]
+        sizes = [len(avail_d) for avail_d in domains]
+        index = np.argmin(sizes)
+        return vars[index], domains[index]
 
     def backtrack(self):
-        "Backtracking search to solve soduku"
-        # If soduku is complete return it.
+        "Backtracking search algorithm"
+        #If board has been completed then return the answer
         if self.finished():
             return self.board
-        # Select the MRV variable to fill
-        vars = [tuple(e) for e in np.transpose(np.where(self.board==0))]
-        var, avail_d = self.getMinRemainVals(vars)
-        # Fill in a value and solve further (recursively), 
-        # backtracking an assignment when stuck
-        for value in avail_d:
-            self.board[var] = value
+
+        #Get the MRV heuristic
+        indices = [tuple(e) for e in np.transpose(np.where(self.board==0))]
+        index, available = self.getMinRemainVals(indices)
+
+        #backtrack main algorithm
+        for node in available:
+            self.board[index] = node
             result = self.backtrack()
             if np.any(result):
                 return result
             else:
-                self.board[var] = 0
+                self.board[index] = 0
         return False
 
 # Inputs
