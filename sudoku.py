@@ -3,7 +3,7 @@ import numpy
 from functools import reduce
 
 class Sudoku():
-    def __init__(self, input):
+    def __init__(self, input, degrees):
         '''initialize variables this class needs'''
         self.slices = [slice(0,3), slice(3,6), slice(6,9)]
         a,b,c = self.slices
@@ -11,6 +11,7 @@ class Sudoku():
         self.FULLDOMAIN = numpy.array(range(1,10)) 
         self.board = Sudoku.toBoard(input)
         self.count = 0
+        self.degrees = degrees
 
     def toBoard(input):
         '''Turns the input into a sudoku board'''
@@ -23,21 +24,21 @@ class Sudoku():
         return section
 
     # Constraints
-    def unique_rows(self):
+    def row_constraint(self):
         '''Checks to see if the rows are unique'''
         for row in self.board:
             if not numpy.array_equal(numpy.unique(row),numpy.array(range(1,10))) :
                 return False
         return True
 
-    def unique_columns(self):
+    def column_constraint(self):
         '''Checks to see if the columns are unique'''
         for row in self.board.T: #transpose soduku to get columns
             if not numpy.array_equal(numpy.unique(row),numpy.array(range(1,10))) :
                 return False
         return True
 
-    def unique_sections(self):
+    def section_constraint(self):
         '''Checks to see if the 3x3 sections are unique'''
         for grid in self.allgrids: 
             if not numpy.array_equal(numpy.unique(self.board[grid]),numpy.array(range(1,10))) :
@@ -53,9 +54,9 @@ class Sudoku():
 
     def result(self):
         '''Checks to see if the sudoku board has been correctly solved'''
-        if self.unique_columns():
-            if self.unique_rows():
-                if self.unique_sections():
+        if self.column_constraint():
+            if self.row_constraint():
+                if self.section_constraint():
                     return True
         return False
 
@@ -69,6 +70,8 @@ class Sudoku():
 
     def getMinRemainVals(self, values):
         '''The minimum remaining value heuristic function'''
+        results = []
+        i = []
         domains = [self.domain(val) for val in values]
         sizes = [len(node) for node in domains]
         index = numpy.argmin(sizes)
@@ -83,13 +86,16 @@ class Sudoku():
         #Get the MRV heuristic
         indices = [tuple(e) for e in numpy.transpose(numpy.where(self.board==0))]
         index, available = self.getMinRemainVals(indices)
-        
+
         #backtrack main algorithm
         for node in available:
             if self.count < 4:
                 print("Variable Selected: ", index)
                 print("Domain Size: ", len(available))
+                print("Degree: ", self.degrees[self.count])
                 print("Value Assigned: ", node)
+                #print(self.board)
+                print()
                 self.count += 1
             self.board[index] = node
             result = self.backtrack()
@@ -103,7 +109,7 @@ class Sudoku():
 start = time.time()
 board_a = "001002000005006030460005000000104000600800143000090508800049050100320000009000300"
 print("Board A input:", board_a)
-a = Sudoku(board_a)
+a = Sudoku(board_a, [8, 11, 8, 11])
 
 # Solve board a
 print("solved a:\n", a.backtrack())
@@ -116,7 +122,7 @@ print()
 start = time.time()
 board_b = "005010000002004030109000206200030000040000700500007001000603000060100000000070050"
 print("Board B input:", board_b)
-b = Sudoku(board_b)
+b = Sudoku(board_b, [12, 12, 10, 9])
 
 #solve board b
 print("solved b:\n", b.backtrack())
@@ -129,7 +135,7 @@ print()
 start = time.time()
 board_c = "670000000025000000090560200300080900000000801000470000008600090000000010106050070"
 print("Board C input:", board_c)
-c = Sudoku(board_c)
+c = Sudoku(board_c, [13, 9, 11, 7])
 
 #solve board c
 print("solved c:\n", c.backtrack())
