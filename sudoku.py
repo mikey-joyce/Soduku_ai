@@ -70,8 +70,6 @@ class Sudoku():
 
     def getMinRemainVals(self, values):
         '''The minimum remaining value heuristic function'''
-        results = []
-        i = []
         domains = [self.domain(val) for val in values]
         sizes = [len(node) for node in domains]
         index = numpy.argmin(sizes)
@@ -84,7 +82,7 @@ class Sudoku():
             return self.board
 
         #Get the MRV heuristic
-        indices = [tuple(e) for e in numpy.transpose(numpy.where(self.board==0))]
+        indices = [tuple(element) for element in numpy.transpose(numpy.where(self.board==0))]
         index, available = self.getMinRemainVals(indices)
 
         #backtrack main algorithm
@@ -94,7 +92,6 @@ class Sudoku():
                 print("Domain Size: ", len(available))
                 print("Degree: ", self.degrees[self.count])
                 print("Value Assigned: ", node)
-                #print(self.board)
                 print()
                 self.count += 1
             self.board[index] = node
