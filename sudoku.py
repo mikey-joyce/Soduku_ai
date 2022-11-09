@@ -112,9 +112,9 @@ print("Board A input:", board_a)
 a = Sudoku(board_a, [8, 11, 8, 11])
 
 # Solve board a
-print("solved a:\n", a.backtrack())
+print("Board A Solution:\n", a.backtrack())
 print("Execution time: ", time.time() - start)
-print("correct:", a.result())
+print("Is solution valid?:", a.result())
 
 print()
 print()
@@ -125,9 +125,9 @@ print("Board B input:", board_b)
 b = Sudoku(board_b, [12, 12, 10, 9])
 
 #solve board b
-print("solved b:\n", b.backtrack())
+print("Board B Solution:\n", b.backtrack())
 print("Execution time: ", time.time() - start)
-print("correct:", b.result())
+print("Is solution valid?:", b.result())
 
 print()
 print()
@@ -138,6 +138,6 @@ print("Board C input:", board_c)
 c = Sudoku(board_c, [13, 9, 11, 7])
 
 #solve board c
-print("solved c:\n", c.backtrack())
+print("Board C Solution:\n", c.backtrack())
 print("Execution time: ", time.time() - start)
-print("correct:", c.result())
+print("Is solution valid?:", c.result())
